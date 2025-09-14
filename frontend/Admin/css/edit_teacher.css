@@ -1,0 +1,192 @@
+/* The Modal (background) */
+.modal{
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0, 0, 0, 0.4); /* Black w/ opacity */
+}
+
+/* Modal Content/Box */
+.modal-content {
+    background-color: #fefefe;
+    position: fixed;
+    right: 0;
+    top: 49px;
+    width: 400px; /* Could be more responsive */
+    height: 100%;
+    border: 1px solid #888;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.attendance-modal-content {
+    background-color: #fefefe;
+    position: fixed;
+    right: 0;
+    top: 49px;
+    width: fit-content; /* Could be more responsive */
+    height: 100%;
+    border: 1px solid #888;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header{
+    line-height: 28px;
+    flex: 0 1 auto;
+    margin-right: 16px;
+}
+
+/* The Close Button */
+.close-button, .close-button2, .close-button3, .close-button4
+{
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close-button:hover,
+.close-button:focus,
+.close-button2:hover,
+.close-button2:focus,
+.close-button3:hover,
+.close-button3:focus,
+.close-button4:hover,
+.close-button4:focus
+{
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+form {
+    border-radius: 8px;
+    width: 320px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 20px;
+    margin: 0 auto;
+    text-align: left;
+}
+
+.form label, p {
+    font-size: 0.9em;
+    text-align: left;
+}
+.form a{
+    text-decoration: underline;
+    text-align: left;
+    color: #4f46e5;
+}
+
+form hr {
+    border-top: 1px solid lightgray; /* A slightly thicker, more visible line */
+    margin: 3px 0; /* Adjust spacing as needed for form separation */
+}
+
+.form input,
+.form select {
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 0.95em;
+}
+
+.buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: auto;
+}
+
+.cancel {
+    font-size: 13px;
+    font-weight: 400;
+    border: 1px solid rgb(138, 136, 134);
+    border-radius: 2px;
+    box-sizing: border-box;
+    cursor: pointer;
+    display: inline-block;
+    padding: 0px 16px;
+    text-decoration: none;
+    text-align: center;
+    min-width: 80px;
+    height: 24px;
+    background-color: rgb(255, 255, 255);
+    color: rgb(50, 49, 48);
+    user-select: none;
+}
+
+.create {
+    font-size: 13px;
+    font-weight: 400;
+    border: 1px solid rgb(0, 120, 212);
+    border-radius: 2px;
+    box-sizing: border-box;
+    cursor: pointer;
+    display: inline-block;
+    padding: 0px 16px;
+    text-decoration: none;
+    text-align: center;
+    min-width: 80px;
+    height: 24px;
+    background-color: rgb(0, 120, 212);
+    color: rgb(255, 255, 255);
+    user-select: none;
+}
+
+
+/* Main Container Styles */
+.delete-user-container {
+    background-color: #fff;
+    width: 100%;
+    max-width: 600px; /* Adjust as needed */
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 2rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Header Section */
+.dialog-header h1 {
+    font-size: 1.5rem;
+    font-weight: 400;
+    margin-bottom: 0.5rem;
+}
+
+.dialog-header p {
+    font-size: 0.9rem;
+    color: #666;
+    line-height: 1.4;
+    margin-bottom: 2rem;
+}
+
+.deleteInfo{
+    margin-bottom: 20px;
+}
+
+.assigned_class{
+   margin: 30px 0 30px 0;
+}
+#fileName{
+    width: 100%;
+    margin-top: 5px;
+}
+
+#downloadBtn{
+    margin: 20px 0 20px 0;
+}
+
+#fileHeader{
+    padding-top: 15px;
+}
+
+#formatOption1{
+    margin-top: 5px;
+}

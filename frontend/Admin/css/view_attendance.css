@@ -1,0 +1,7 @@
+.daily-attendance{
+    display: none;
+}
+.date, .attendance-options{
+    float: right;
+    display: block;
+}

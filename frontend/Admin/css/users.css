@@ -1,0 +1,190 @@
+.kontainer {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.container {
+  text-align: center;
+}
+
+h1 {
+  font-size: 2.5em;
+  font-weight: bold;
+  margin-bottom: 20px;
+  margin-top: 5px;
+}
+
+.edit-header{
+  margin-bottom: 0;
+}
+
+.searchBar{
+  text-align: right;
+  margin: 0 10px 10px;
+}
+
+.button-container {
+  display: flex;
+  justify-content: flex-end; /* This aligns the items to the right side of the container */
+  gap: 10px; /* Adds a 10px gap between the buttons */
+}
+.button-container button {
+  padding: 8px 16px;
+  margin-left: 10px;
+  border-radius: 12px;
+  border: 1px solid #444;
+  cursor: pointer;
+  font-weight: bold;
+  background-color: #fff;
+}
+
+.button-container button:hover {
+  background-color: #ddd;
+}
+
+.edit-form .btn {
+  cursor: pointer;
+  font-weight: bold;
+  background-color: #fff;
+}
+
+.edit-form .btn:hover ,input:hover {
+  background-color: #ddd;
+}
+
+
+
+h2 {
+  text-align: left;
+  margin: 0;
+}
+
+.teachers-table{
+  background: white;
+  padding: 25px;
+  border-radius: 8px;
+  width: 100%;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  margin: 0 auto;
+  text-align: left;
+}
+
+table th{
+  padding: 0 15px 5px 15px; /* Adjust these values as needed to control the gap */
+  text-align: center;
+}
+
+table td {
+  padding: 5px 15px 5px 15px; /* Adjust these values as needed to control the gap */
+}
+
+.bulk-form{
+  width: 400px;
+  padding-top: 12px;
+  height: fit-content;
+}
+
+.edit-form{
+  width: fit-content;
+}
+
+
+.form label, p {
+  font-size: 0.9em;
+  text-align: left;
+}
+.form a{
+  text-decoration: underline;
+  text-align: left;
+  color: #4f46e5;
+}
+
+form hr {
+  border-top: 1px solid lightgray; /* A slightly thicker, more visible line */
+  margin: 3px 0; /* Adjust spacing as needed for form separation */
+}
+
+.form input,
+.form select {
+  padding: 8px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 0.95em;
+}
+
+.buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.cancel {
+  background-color: #333;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.create,.search, .continue {
+  background-color: #a06c6c;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.continue:disabled {
+  cursor: not-allowed;
+}
+.error-message {
+  background-color: rgba(255, 0, 0, 0.7); /* Semi-transparent red background */
+  color: #ffffff; /* White text color */
+  padding: 10px 20px; /* Padding inside the message box */
+  border-radius: 8px; /* Slightly rounded corners */
+  text-align: center; /* Center the text and icon */
+  font-size: 1rem; /* Adjust font size */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+  align-items: center; /* Vertically align icon and text */
+  justify-content: center; /* Horizontally center content */
+  gap: 10px; /* Space between icon and text */
+  margin: 1% auto;
+}
+
+.error-message i {
+  font-size: 1.2em; /* Make the icon slightly larger than the text */
+}
+
+.password-box {
+  position: relative;
+}
+.password-box input{
+  width: 95%;
+}
+.password-box i{
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  right: 15px;
+  cursor: pointer;
+}
+
+.required_length{
+  margin:0;
+  color: grey;
+  font-size: x-small;
+  display: none;
+}
+
+.not_matched{
+  margin: 0;
+  color: darkred;
+  display: none;
+}

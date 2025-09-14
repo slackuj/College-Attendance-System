@@ -1,0 +1,29 @@
+<?php
+    $fname = getAttribute('aTeacher', 'fname', 'id', $tID);
+    $lname = getAttribute('aTeacher', 'lname', 'id', $tID);
+
+    ?>
+
+<!--/*  M O D A L   F O R   E X P O R T I N G  S U B J E C T S   */ -->
+<div id="export_subjects" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span class="close-button">&times;</span>
+            <h1>Download Subjects</h1>
+        </div>
+        <div id="modelInfo" class="deleteInfo">Your download will be based on the filter selections you have made.</div>
+        <div class="modal-body">
+            <div class="exportInfo">Format</div>
+            <input checked type="radio" class="exportFormat" id="format" name="file_format" value="xlsx">
+            <label id="formatOption1" for="xlsx">XLSX</label>
+            <br></br>
+            <div class="fileHeader">File Name</div>
+            <input id="fileName" value="<?php echo $name . '_' . 'Subjects' . '_' . date('Y-m-d')?>">
+                <div class="modal-footer">
+                    <button id="downloadBtn" class="create" type="button">
+                        Download
+                    </button>
+                </div>
+    </div>
+</div>
+</div>

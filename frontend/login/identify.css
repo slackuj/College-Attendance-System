@@ -1,0 +1,90 @@
+body {
+    display: flex;
+    flex-direction: column;
+    font-family: 'Inter', sans-serif;
+    background-color: #CFB4B4;
+    min-height: 100vh;
+    justify-content: center;
+    align-items: center;
+}
+
+.container {
+    background-color: #E7C8C8;
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: 0 1.25rem 2rem rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    width: fit-content;
+    max-width: 300px;
+    margin: 0 auto;
+    /* Optional: Added max-width for better responsiveness on smaller screens */
+}
+
+.form label, p {
+    font-size: 0.9em;
+    text-align: left;
+    display: block; /* Ensures label is on its own line */
+    margin-bottom: 0.5rem;
+}
+
+.form a{
+    text-decoration: underline;
+    text-align: left;
+    color: #4f46e5;
+}
+
+.form input {
+    padding: 10px; /* Slightly increased padding */
+    border-radius: 6px; /* Slightly more rounded corners */
+    width: 100%; /* Makes the input full width of the container */
+    border: 1px solid #ccc;
+    font-size: 0.95em;
+    box-sizing: border-box; /* Ensures padding doesn't affect the width */
+    margin-bottom: 15px; /* Adds space below the input */
+    transition: border-color 0.3s ease, box-shadow 0.3s ease; /* Smooth transition for focus */
+}
+
+.form input:focus {
+    border-color: #a06c6c; /* Color change on focus */
+    outline: none; /* Removes the default outline */
+    box-shadow: 0 0 5px rgba(160, 108, 108, 0.5); /* Subtle shadow on focus */
+}
+
+.buttons {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px; /* Modern way to add space between items in a flex container */
+    margin-top: 20px;
+}
+
+.cancel, .continue {
+    padding: 8px 18px; /* Consistent, slightly larger padding for both buttons */
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: 500;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.cancel {
+    background-color: #333;
+    color: white;
+}
+
+.cancel:hover {
+    background-color: #555; /* Darken on hover */
+    transform: translateY(-2px); /* Slight lift effect */
+}
+
+.continue {
+    background-color: #a06c6c;
+    color: white;
+}
+
+.continue:hover {
+    background-color: #8c5b5b; /* Darken on hover */
+    transform: translateY(-2px); /* Slight lift effect */
+}

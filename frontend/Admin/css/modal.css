@@ -1,0 +1,288 @@
+/* Base style for the positive action button */
+.positive-action-button {
+    font-size: 13px;
+    font-weight: 400;
+    border: 1px solid #ffffff;
+    border-radius: 2px;
+    box-sizing: border-box;
+    cursor: pointer;
+    display: inline-block;
+    padding: 0 16px;
+    text-decoration: none;
+    text-align: center;
+    min-width: 80px;
+    height: 24px;
+    background-color: #0078d4;
+    color: #fff;
+    user-select: none;
+    transition: background-color 0.3s, transform 0.3s;
+    position: relative; /* Needed for the spinner */
+    overflow: hidden; /* Hide spinner overflow */
+}
+
+.negative-action-button {
+    font-size: 13px;
+    font-weight: 400;
+    border: 1px solid rgb(138, 136, 134);
+    border-radius: 2px;
+    box-sizing: border-box;
+    cursor: pointer;
+    display: inline-block;
+    padding: 0 16px;
+    text-decoration: none;
+    text-align: center;
+    min-width: 80px;
+    height: 24px;
+    background-color: rgb(255, 255, 255);
+    color: rgb(50, 49, 48);
+    user-select: none;
+}
+
+.positive-action-button:hover {
+    background-color: #0067b8;
+}
+
+/* Styling for the loading state */
+.positive-action-button.loading {
+    cursor: not-allowed;
+    background-color: #0067b8;
+    color: transparent; /* Hide text */
+}
+
+/* Loading spinner inside the button */
+.positive-action-button.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    width: 14px;
+    height: 14px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+
+.modal-footer{
+    margin: 40px;
+}
+
+.positive-action-button:disabled, .negative-action-button:disabled ,
+.positive-action-button:disabled:hover, .negative-action-button:disabled:hover {
+    cursor: default;
+    opacity: 0.7;
+}
+.action-button:disabled,
+.action-button:disabled:hover{
+    cursor: default;
+    color: rgb(161, 159, 157);
+}
+
+.table-wrapper {
+    max-height: 1200px; /* Adjust the height as needed based on the modal's size */
+    overflow-y: auto; /* Enables vertical scrolling when content exceeds the max-height */
+    border: 1px solid #ddd; /* Adds a border around the scrollable area */
+    border-radius: 8px; /* Optional: adds rounded corners to the container */
+    margin-top: 20px; /* Adds space between the table and the buttons */
+}
+
+.teachers-table {
+    width: 100%; /* Ensures the table takes up the full width of its container */
+    border-collapse: collapse; /* Merges table cell borders */
+}
+
+.teachers-table th, .teachers-table td {
+    padding: 12px 15px; /* Adds padding inside table cells */
+    text-align: left; /* Aligns text to the left */
+    border-bottom: 1px solid #ddd; /* Adds a horizontal line between rows */
+}
+
+.teachers-table th {
+    background-color: #f4f4f4; /* Light gray background for headers */
+    color: #333; /* Darker text color for better readability */
+    position: sticky; /* Makes the header "sticky" */
+    top: 0; /* Pins the header to the top of the container */
+}
+
+/* Optional: Add hover effect for rows */
+.teachers-table tbody tr:hover {
+    background-color: #f9f9f9; /* Changes background color on hover */
+}
+
+/* Styling for the radio button column to be smaller */
+.teachers-table th:first-child, .teachers-table td:first-child {
+    width: fit-content; /* Sets a fixed width for the radio button column */
+    text-align: left; /* Centers the radio button */
+}
+
+.info-message {
+    background-color: #0078d4; /* Semi-transparent red background */
+    color: #ffffff; /* White text color */
+    padding: 10px 20px; /* Padding inside the message box */
+    border-radius: 8px; /* Slightly rounded corners */
+    text-align: center; /* Center the text and icon */
+    font-size: 1rem; /* Adjust font size */
+    max-width: 400px; /* Limit width to match container, adjust as needed */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+    align-items: center; /* Vertically align icon and text */
+    justify-content: center; /* Horizontally center content */
+    gap: 10px; /* Space between icon and text */
+    margin: 1% auto;
+}
+
+.info-message i {
+    font-size: 1.2em; /* Make the icon slightly larger than the text */
+}
+
+.warning-message {
+    background-color: yellow; /* Semi-transparent red background */
+    color: #333333; /* White text color */
+    padding: 10px 20px; /* Padding inside the message box */
+    border-radius: 8px; /* Slightly rounded corners */
+    text-align: center; /* Center the text and icon */
+    font-size: 1.2em; /* Adjust font size */
+    max-width: 400px; /* Limit width to match container, adjust as needed */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+    align-items: center; /* Vertically align icon and text */
+    justify-content: center; /* Horizontally center content */
+    gap: 10px; /* Space between icon and text */
+    margin: 1% auto;
+}
+
+.error-message {
+    background-color: rgba(255, 0, 0, 0.7); /* Semi-transparent red background */
+    color: #ffffff; /* White text color */
+    padding: 10px 20px; /* Padding inside the message box */
+    border-radius: 8px; /* Slightly rounded corners */
+    text-align: center; /* Center the text and icon */
+    font-size: 1rem; /* Adjust font size */
+    max-width: 400px; /* Limit width to match container, adjust as needed */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+    align-items: center; /* Vertically align icon and text */
+    justify-content: center; /* Horizontally center content */
+    gap: 10px; /* Space between icon and text */
+    margin: 1% auto;
+}
+
+.error-message i {
+    font-size: 1.2em; /* Make the icon slightly larger than the text */
+}
+
+/* Hide the default checkbox */
+.attendance-checkbox, .attendance-checkboxes {
+    display: none;
+}
+
+/* Base style for the custom checkmark */
+.attendance-checkbox + label,
+.attendance-checkboxes + label {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: center;
+    line-height: 20px;
+    font-size: 16px;
+}
+
+/* Style for the "Present" (green tick) */
+.present-status:checked + label {
+    border-color: #28a745; /* Green border */
+    background-color: #28a745; /* Green background */
+    color: white; /* White icon color */
+}
+.present-status:checked + label::after {
+    content: "\f00c"; /* Font Awesome tick icon */
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+}
+
+/* Style for the "Absent" (red cross) */
+.absent-status:checked + label {
+    border-color: #dc3545; /* Red border */
+    background-color: #dc3545; /* Red background */
+    color: white; /* White icon color */
+}
+.absent-status:checked + label::after {
+    content: "\f00d"; /* Font Awesome cross icon */
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+}
+
+/* Style for the "Leave" (blue color) */
+.leave-status:checked + label {
+    border-color: #0078d4; /* Blue border */
+    background-color: #0078d4; /* Blue background */
+    color: white; /* White icon color */
+}
+.leave-status:checked + label::after {
+    content: ""; /* No icon for this one, just the color */
+}
+
+/* Optional: Add a hover effect for better user experience */
+.attendance-checkbox + label:hover
+.attendance-checkboxes + label:hover
+{
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+.password-input-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-input-container input {
+    flex-grow: 1;
+    padding-right: 50px; /* Space for the "View" button */
+}
+
+.password-toggle-btn {
+    position: absolute;
+    right: 5px;
+    padding: 5px 10px;
+    background-color: transparent;
+    color: #007BFF;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.8em;
+}
+
+.password-toggle-btn:hover {
+    color: #0056b3;
+}
+
+.generate-password-section {
+    margin-top: 10px;
+    display: flex;
+    justify-content: flex-end; /* Align to the right side of the form */
+}
+
+.generate-password-btn {
+    background-color: #4cae4c;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.generate-password-btn:hover {
+    background-color: #0056b3;
+}
+
+.validation-message {
+    font-size: 0.8em;
+    color: red;
+    margin-top: -10px;
+    margin-bottom: 10px;
+}

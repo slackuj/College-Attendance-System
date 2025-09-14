@@ -1,0 +1,122 @@
+/* Import Google font - Poppins */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
+.wrapper1{
+  width: 750px;
+  background: #e5f3fd;
+  border-radius: 10px;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.12);
+}
+.wrapper1 header{
+  display: flex;
+  align-items: center;
+  padding: 25px 30px 10px;
+  justify-content: space-between;
+}
+header .icons{
+  display: flex;
+}
+header .icons span{
+  height: 38px;
+  width: 38px;
+  margin: 0 1px;
+  cursor: pointer;
+  color: #878787;
+  text-align: center;
+  line-height: 38px;
+  font-size: 1.9rem;
+  user-select: none;
+  border-radius: 50%;
+}
+.icons span:last-child{
+  margin-right: -10px;
+}
+header .icons span:hover{
+  background: #f2f2f2;
+}
+header .current-date{
+  font-size: 1.45rem;
+  font-weight: 500;
+}
+.calendar{
+  padding: 20px;
+}
+.calendar ul{
+  display: flex;
+  flex-wrap: wrap;
+  list-style: none;
+  text-align: center;
+}
+.calendar .days{
+  margin-bottom: 20px;
+}
+.calendar li{
+  color: #333;
+  width: calc(100% / 7);
+  font-size: 1.07rem;
+}
+.calendar .weeks li{
+  font-weight: 500;
+  cursor: default;
+}
+.calendar .days li{
+  z-index: 1;
+  cursor: pointer;
+  position: relative;
+  margin-top: 30px;
+}
+.days li.inactive{
+  color: #aaa;
+}
+.days li.active, li.present, li.absent, li.taken{
+  color: #fff;
+}
+
+.days li::before{
+  position: absolute;
+  content: "";
+  left: 50%;
+  top: 50%;
+  height: 40px;
+  width: 40px;
+  z-index: -1;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+.days li.selected::before {
+  border: thick solid coral;
+}
+.days li.active::before{
+  background: #9B59B6;
+  border-style: dotted;
+}
+.days li.present::before{
+  background: blue;
+}
+.days li.taken::before{
+  background: blue;
+}
+.days li.absent::before{
+  background: red;
+}
+.days li.leave::before{
+  background: green;
+}
+.days li:not(.active):hover::before{
+}
+/* NEW CSS for the subscript */
+.days li .attendance-subscript {
+  position: absolute; /* Position relative to the parent li */
+  bottom: 2px; /* Adjust as needed */
+  right: 2px;  /* Adjust as needed */
+  font-size: 0.6em; /* Make it smaller than the day number */
+  font-weight: bold;
+  line-height: 1; /* Prevent extra line height from affecting position */
+  z-index: 2; /* Ensure it's above the ::before pseudo-element */
+}
+/* Adjust color for better visibility if the parent li background is dark */
+.days li.present .attendance-subscript,
+.days li.absent .attendance-subscript,
+.days li.leave .attendance-subscript {
+  color: black; /* Or a contrasting color if the background is dark */
+}
