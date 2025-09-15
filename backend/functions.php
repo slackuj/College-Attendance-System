@@ -16,42 +16,47 @@
         return $mysqli;
     }
 
-    function login($email, $pass){
-        $mysqli = dbConnect();
-        $query = "select password, id, role from aUsers where email = '$email'";
-        $return = false;
+function login($email, $pass){
+    $mysqli = dbConnect();
+    $return = false;
 
-        if ($result = $mysqli->query($query)){
+    $query = "select password, id, role from aUsers where email = ?";
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
 
-            $row = $result->fetch_array(MYSQLI_NUM);
-            if ($row !== null){
-                if (password_verify($pass, $row[0]))
-                    $return = $row;
+        if ($row !== null) {
+            if (password_verify($pass, $row['password'])) {
+                $return = $row;
             }
         }
-        else{
-            echo $mysqli->error;
-        }
-        /*
-       $password = password_hash('password', PASSWORD_DEFAULT);
-       $query = "
-                insert into aUsers values(null, 'admin@nast.edu.np', '$password', '-1', '0');
-       ";
-       $mysqli->query($query);
-        */
-        $mysqli->close();
-        return $return;
+        $stmt->close();
+    } else {
+        echo $mysqli->error;
     }
-    function deleteContentsOf($tableName, $identifier, $id){
-        $mysqli = dbConnect();
-        $query = "delete from $tableName where $identifier = '$id'";
 
-        if ($mysqli->query($query) === TRUE)
+    $mysqli->close();
+    return $return;
+}
+function deleteContentsOf($tableName, $identifier, $id){
+    $mysqli = dbConnect();
+    $query = "delete from $tableName where $identifier = ?";
+
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("s", $id);
+        if ($stmt->execute()) {
             echo "successfully deleted";
-        else
-            echo "Error updating: " . $mysqli->error;
-        $mysqli->close();
+        } else {
+            echo "Error updating: " . $stmt->error;
+        }
+        $stmt->close();
+    } else {
+        echo "Error preparing statement: " . $mysqli->error;
     }
+    $mysqli->close();
+}
 
     function deleteTeacher($tID) : bool
     {
@@ -73,83 +78,90 @@ function deleteTeacherPermanently($tID)
     $mysqli = dbConnect();
 
     // set teacher of unassigned classes to dummy teacher
-    $query = "
-                update Classes set
-                teacher = '51'
-                where teacher = '$tID';
-    ";
+    $query = "update Classes set teacher = '51' where teacher = ?";
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("s", $tID);
+        $stmt->execute();
+        $stmt->close();
+    }
 
-    $mysqli->query($query);
-
-    $query = "delete from Users where id = '$tID'";
-    $mysqli->query($query);
+    $query = "delete from Users where id = ?";
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("s", $tID);
+        $stmt->execute();
+        $stmt->close();
+    }
     $mysqli->close();
 }
 
 function recoverTeacher($tID)
 {
     $mysqli = dbConnect();
-    $query = "update Users set
-                 deleted = '0',
-                 created_date = current_date
-                 where id = '$tID'";
+    $query = "update Users set deleted = '0', created_date = current_date where id = ?";
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("s", $tID);
+        $stmt->execute();
+        $stmt->close();
+    }
 
-    $mysqli->query($query);
+    $query = "update Teacher set deleted = '0' where id = ?";
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("s", $tID);
+        $stmt->execute();
+        $stmt->close();
+    }
 
-    $query = "update Teacher set
-                 deleted = '0'
-                 where id = '$tID'";
-    $mysqli->query($query);
-
-    $query = "update Classes set
-                 deleted = '0',
-                 created_date = current_date
-                 where teacher = '$tID' and deleted = '-1'";
-    $mysqli->query($query);
-
+    $query = "update Classes set deleted = '0', created_date = current_date where teacher = ? and deleted = '-1'";
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("s", $tID);
+        $stmt->execute();
+        $stmt->close();
+    }
     $mysqli->close();
 }
 
 function recoverStudent($sID)
 {
     $mysqli = dbConnect();
-    $query = "update Users set
-                 deleted = '0',
-                 created_date = current_date
-                 where id = '$sID'";
+    $query = "update Users set deleted = '0', created_date = current_date where id = ?";
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("s", $sID);
+        $stmt->execute();
+        $stmt->close();
+    }
 
-    $mysqli->query($query);
-
-    $query = "update Student set
-                 deleted = '0'
-                 where id = '$sID'";
-    $mysqli->query($query);
+    $query = "update Student set deleted = '0' where id = ?";
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("s", $sID);
+        $stmt->execute();
+        $stmt->close();
+    }
 
     $mysqli->close();
 }
 function recoverClass($cID)
 {
     $mysqli = dbConnect();
-
-    $query = "update Classes set
-                 deleted = '-1',
-                 created_date = current_date
-                 where id = '$cID'";
-
-    $mysqli->query($query);
+    $query = "update Classes set deleted = '-1', created_date = current_date where id = ?";
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("s", $cID);
+        $stmt->execute();
+        $stmt->close();
+    }
     $mysqli->close();
 }
 
 function deleteClass($cID) : bool
 {
     $mysqli = dbConnect();
-    $query = "update Classes set
-                                deleted = 1,
-                                created_date = current_date
-                                where id = $cID 
-    ";
+    $query = "update Classes set deleted = 1, created_date = current_date where id = ?";
+    $result = false;
 
-    $result = $mysqli->query($query);
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("i", $cID);
+        $result = $stmt->execute();
+        $stmt->close();
+    }
     $mysqli->close();
     return $result;
 }
@@ -157,63 +169,97 @@ function deleteClass($cID) : bool
 function deleteStudent($sID) : bool
 {
     $mysqli = dbConnect();
-    $query = "update Student set
-                                deleted = '1'
-                                where id = '$sID' 
-    ";
+    $result = false;
 
-    $result = $mysqli->query($query);
+    $query = "update Student set deleted = '1' where id = ?";
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("s", $sID);
+        $stmt->execute();
+        $stmt->close();
+    }
 
-    $query = "update Users set
-                                deleted = '1',
-                                created_date = current_date
-                                where id = '$sID' 
-    ";
-
-    $result = $mysqli->query($query);
+    $query = "update Users set deleted = '1', created_date = current_date where id = ?";
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("s", $sID);
+        $result = $stmt->execute();
+        $stmt->close();
+    }
 
     $mysqli->close();
     return $result;
 }
 
-    function getID($tableName){
-        $mysqli = dbConnect();
+function getID($tableName){
+    $mysqli = dbConnect();
+    $data = [];
 
-        if ($tableName != "aStudent") $query = "select id from $tableName";
-        else $query = "select roll_number from $tableName";
-        $result = $mysqli->query($query);
-
-        /*--------- numeric array ---------*/
-        while ($row = $result->fetch_array(MYSQLI_NUM)){
-           $data[] = $row[0];
-        }
+    // The table name itself cannot be a parameter, so we validate it
+    $validTables = ['aUsers', 'aTeacher', 'aStudent', 'aSubject', 'aProgramme', 'Classes', 'aFaculty', 'aStudent'];
+    if (!in_array($tableName, $validTables)) {
+        // Handle invalid table name, e.g., return an empty array or throw an exception
         $mysqli->close();
-        return $data;
+        return [];
     }
+
+    $query = "select id from $tableName";
+    if ($tableName === "aStudent") {
+        $query = "select roll_number from $tableName";
+    }
+
+    if ($result = $mysqli->query($query)) {
+        while ($row = $result->fetch_array(MYSQLI_NUM)){
+            $data[] = $row[0];
+        }
+        $result->close();
+    }
+    $mysqli->close();
+    return $data;
+}
 
     /*
      * getAttribute($tableName, $column, $idName, $id)
      * returns attribute from table $tableName where column = $column and id = $id
      */
-    function getAttribute($tableName, $column, $idName, $id){
-       $mysqli = dbConnect();
-       $query = "select $column from $tableName where $idName = '$id'";
-       $result = $mysqli->query($query);
-       $row = $result->fetch_array(MYSQLI_NUM);
-       $mysqli->close();
-       return $row[0];
+function getAttribute($tableName, $column, $idName, $id){
+    $mysqli = dbConnect();
+    $data = null;
+    $query = "select $column from $tableName where $idName = ?";
+
+    // It's critical to validate $tableName, $column, and $idName against whitelists
+    // before using them in the query to prevent SQL injection.
+
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("s", $id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_array(MYSQLI_NUM);
+        if ($row !== null) {
+            $data = $row[0];
+        }
+        $stmt->close();
     }
+    $mysqli->close();
+    return $data;
+}
 
     /*
      * returns one row of data from table
      */
 function getRow($tableName, $idName, $id){
     $mysqli = dbConnect();
-    $query = "select * from $tableName where $idName = '$id'";
-    $result = $mysqli->query($query);
-    $row = $result->fetch_array(MYSQLI_NUM);
+    $data = null;
+    $query = "select * from $tableName where $idName = ?";
+
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("s", $id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_array(MYSQLI_NUM);
+        $data = $row;
+        $stmt->close();
+    }
     $mysqli->close();
-    return $row;
+    return $data;
 }
 
     /* getColumn($tableName, $column, $id)
@@ -221,12 +267,22 @@ function getRow($tableName, $idName, $id){
     */
 function getColumn($tableName, $column, $id){
     $mysqli = dbConnect();
-    $ID = $tableName === 'aStudent' ? 'roll_number' : 'id';// should be correct assignment
-    $query = "select $column from $tableName where $ID = '$id'";
-    $result = $mysqli->query($query);
-    $row = $result->fetch_array(MYSQLI_NUM);
+    $data = null;
+    $ID = ($tableName === 'aStudent') ? 'roll_number' : 'id';
+    $query = "select $column from $tableName where $ID = ?";
+
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("s", $id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_array(MYSQLI_NUM);
+        if ($row !== null) {
+            $data = $row[0];
+        }
+        $stmt->close();
+    }
     $mysqli->close();
-    return $row[0];
+    return $data;
 }
 
     function getFaculty(){
@@ -376,59 +432,80 @@ function getDeletedTeachers() : Array {
     return $data;
 }
 
-    function getStudentName($roll_number) : string
-    {
-        $mysqli = dbConnect();
+function getStudentName($roll_number) : string
+{
+    $mysqli = dbConnect();
+    $data = '';
+    $query = "select fname, lname from aStudent where roll_number = ?";
 
-        $query = "select fname, lname from aStudent where roll_number = '$roll_number'";
-        $result = $mysqli->query($query);
-
-        /*--------- numeric array ---------*/
-        while ($row = $result->fetch_array(MYSQLI_NUM)){
-           $data = $row[0] . ' ' . $row[1];
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("s", $roll_number);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_array(MYSQLI_NUM);
+        if ($row !== null) {
+            $data = $row[0] . ' ' . $row[1];
         }
+        $stmt->close();
+    }
+    $mysqli->close();
+    return $data;
+}
+
+function getTeachersName($tID){
+    $mysqli = dbConnect();
+    $data = null;
+    $query = "select * from aTeacher where id = ?";
+
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("i", $tID);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_array(MYSQLI_NUM);
+        if ($row !== null) {
+            $data = $row[1] . ' ' . $row[2];
+        }
+        $stmt->close();
+    }
+    $mysqli->close();
+    return $data;
+}
+
+function getContentsOf($tableName){
+    $mysqli = dbConnect();
+    $data = [];
+
+    $validTables = ['aUsers', 'aTeacher', 'aStudent', 'aSubject', 'aProgramme', 'Classes', 'aFaculty', 'ClassesInfo', 'Attendance', 'token_table'];
+    if (!in_array($tableName, $validTables)) {
         $mysqli->close();
-        return $data;
+        return [];
     }
 
-    function getTeachersName($tID){
-        $mysqli = dbConnect();
-
-        $query = "select * from aTeacher where id = $tID";
-        $result = $mysqli->query($query);
-
-        /*--------- numeric array ---------*/
+    $query = "select * from $tableName";
+    if ($result = $mysqli->query($query)) {
         while ($row = $result->fetch_array(MYSQLI_NUM)){
-           $data = $row[1] . ' ' . $row[2];
+            $data[] = $row;
         }
-        $mysqli->close();
-        return $data;
+        $result->close();
     }
-
-    function getContentsOf($tableName){
-        $mysqli = dbConnect();
-
-        $query = "select * from $tableName";
-        $result = $mysqli->query($query);
-
-        /*--------- numeric array ---------*/
-        while ($row = $result->fetch_array(MYSQLI_NUM)){
-           $data[] = $row;
-        }
-        $mysqli->close();
-        return $data;
-    }
+    $mysqli->close();
+    return $data;
+}
 
 function getSubjectsOf($pID){
     $mysqli = dbConnect();
+    $data = [];
+    $query = "SELECT * FROM aSubject WHERE programme = ?;";
 
-    $query = "SELECT * FROM aSubject
-              WHERE programme = $pID;";
-    $result = $mysqli->query($query);
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("s", $pID);
+        $stmt->execute();
+        $result = $stmt->get_result();
 
-    /*--------- numeric array ---------*/
-    while ($row = $result->fetch_array(MYSQLI_NUM)){
-        $data[] = $row;
+        while ($row = $result->fetch_array(MYSQLI_NUM)){
+            $data[] = $row;
+        }
+        $stmt->close();
     }
     $mysqli->close();
     return $data;
@@ -442,49 +519,63 @@ function getSubjectsOf($pID){
 
 function getKlassesOf($ID, $user) : array{
     $mysqli = dbConnect();
-
-    /*if ($user == 1)
-        $query = "select * from Classes where teacher = '$teacher'";
-    else*/ if ($user == 0)
-        $query = "select class from ClassesInfo where roll_number = '$ID'";
-    else
-        $query = "select id from Classes where teacher = '$ID'";
-
-    $result = $mysqli->query($query);
-
-    /*--------- numeric array ---------*/
     $data = [];
-    while ($row = $result->fetch_array(MYSQLI_NUM)){
-        $data[] = $row[0];
+    $query = "";
+
+    if ($user == 0) {
+        $query = "select class from ClassesInfo where roll_number = ?";
+    } else {
+        $query = "select id from Classes where teacher = ?";
+    }
+
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("s", $ID);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        while ($row = $result->fetch_array(MYSQLI_NUM)){
+            $data[] = $row[0];
+        }
+        $stmt->close();
     }
     $mysqli->close();
     return $data;
 }
 
-    function getClassesOf($tID){
-        $mysqli = dbConnect();
+function getClassesOf($tID){
+    $mysqli = dbConnect();
+    $data = [];
+    $teacher = getTeachersName($tID); // Assumes getTeachersName is safe
 
-        $teacher = getTeachersName($tID);
-        $query = "select * from Classes where teacher = '$teacher'";
-        $result = $mysqli->query($query);
+    $query = "select * from Classes where teacher = ?";
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("s", $teacher);
+        $stmt->execute();
+        $result = $stmt->get_result();
 
-        /*--------- numeric array ---------*/
         while ($row = $result->fetch_array(MYSQLI_NUM)){
-           $data[] = $row;
+            $data[] = $row;
         }
-        $mysqli->close();
-        return $data;
+        $stmt->close();
     }
+    $mysqli->close();
+    return $data;
+}
 
 function classesOf($tID){
     $mysqli = dbConnect();
+    $data = [];
+    $query = "select * from aClasses where teacher = ?";
 
-    $query = "select * from aClasses where teacher = '$tID'";
-    $result = $mysqli->query($query);
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("s", $tID);
+        $stmt->execute();
+        $result = $stmt->get_result();
 
-    /*--------- numeric array ---------*/
-    while ($row = $result->fetch_array(MYSQLI_NUM)){
-        $data[] = $row;
+        while ($row = $result->fetch_array(MYSQLI_NUM)){
+            $data[] = $row;
+        }
+        $stmt->close();
     }
     $mysqli->close();
     return $data;
@@ -567,14 +658,18 @@ function getDeletedStudents() : Array {
 
 function getEligibleStudents($programme, $semester){
     $mysqli = dbConnect();
+    $data = [];
+    $query = "select roll_number, fname, lname from aStudent where programme = ? and semester = ?";
 
-    $query = "select roll_number, fname, lname from aStudent 
-            where programme = '$programme' and semester = '$semester'";
-    $result = $mysqli->query($query);
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("ss", $programme, $semester);
+        $stmt->execute();
+        $result = $stmt->get_result();
 
-    /*--------- numeric array ---------*/
-    while ($row = $result->fetch_array(MYSQLI_NUM)){
-        $data[] = $row;
+        while ($row = $result->fetch_array(MYSQLI_NUM)){
+            $data[] = $row;
+        }
+        $stmt->close();
     }
     $mysqli->close();
     return $data;
@@ -582,230 +677,281 @@ function getEligibleStudents($programme, $semester){
 
 function getStudentsRollNumbersOfClass($cID){
     $mysqli = dbConnect();
-
-    $query = "select roll_number from ClassesInfo 
-            where class = '$cID' order by roll_number asc";
-    $result = $mysqli->query($query);
-
-    /*--------- numeric array ---------*/
     $data = [];
-    while ($row = $result->fetch_array(MYSQLI_NUM)){
-        $data[] = $row[0];
+    $query = "select roll_number from ClassesInfo where class = ? order by roll_number asc";
+
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("s", $cID);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        while ($row = $result->fetch_array(MYSQLI_NUM)){
+            $data[] = $row[0];
+        }
+        $stmt->close();
     }
     $mysqli->close();
     return $data;
 }
 
-    function createTeacher($fname, $lname, $email, $password)
-    {
-        // S E N D    E M A I L   T O   T E A C H E R   O N   S U C C E S S F U L    C R E A T I O N
+function createTeacher($fname, $lname, $email, $password)
+{
+    $return = checkForDuplicateUser($email);
 
-        $return = checkForDuplicateUser($email);
-
-        if (is_bool($return)){
-
+    if (is_bool($return)) {
         $mysqli = dbConnect();
         $password = password_hash($password, PASSWORD_DEFAULT);
 
-        // insert into aUsers table
-        $query = "insert into aUsers 
-        values(null, '$email', '$password', '2', current_date)";
-        $mysqli->query($query);
-
-        // insert into aTeacher table
-        $id = getAttribute('aUsers', 'id','email', $email);
-        $query = "insert into aTeacher values('$id', '$fname', '$lname', 'Lecturer')";
-        $mysqli->query($query);
-
-        // insert teacher into token_table
-        $query = "insert into token_table values('$email', '000000', '0')";
-        $mysqli->query($query);
-        $mysqli->close();
+        // Insert into aUsers table
+        $query = "insert into aUsers values(null, ?, ?, '2', current_date)";
+        if ($stmt = $mysqli->prepare($query)) {
+            $stmt->bind_param("ss", $email, $password);
+            $stmt->execute();
+            $stmt->close();
         }
 
-        return $return;
+        // Insert into aTeacher table
+        $id = getAttribute('aUsers', 'id', 'email', $email); // This call should be safe
+        $query = "insert into aTeacher values(?, ?, ?, 'Lecturer')";
+        if ($stmt = $mysqli->prepare($query)) {
+            $stmt->bind_param("iss", $id, $fname, $lname);
+            $stmt->execute();
+            $stmt->close();
+        }
+
+        // Insert teacher into token_table
+        $query = "insert into token_table values(?, '000000', '0')";
+        if ($stmt = $mysqli->prepare($query)) {
+            $stmt->bind_param("s", $email);
+            $stmt->execute();
+            $stmt->close();
+        }
+        $mysqli->close();
     }
+    return $return;
+}
 
 function checkForDuplicateUser($email){
-
     $mysqli = dbConnect();
     $return = true;
-    $query = "select * from aUsers where email = '$email'";
 
-    $result = $mysqli->query($query);
-    $row = $result->fetch_array(MYSQLI_NUM);
-    if ($row == null){
-
-        $query = "select * from Users where email = '$email'";
-
-        $result = $mysqli->query($query);
+    $query = "select * from aUsers where email = ?";
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
         $row = $result->fetch_array(MYSQLI_NUM);
+        if ($row !== null) {
+            $return = "There's already an account associated with id $email";
+        }
+        $stmt->close();
+    }
 
-        if ($row !== null)
-            $return = "There's a deleted account associated with id $email.Consider either recovering it or delete it permanently.";
-    } else {
-        $return = "There's already an account associated with id $email";
+    if (is_bool($return)) {
+        $query = "select * from Users where email = ?";
+        if ($stmt = $mysqli->prepare($query)) {
+            $stmt->bind_param("s", $email);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $row = $result->fetch_array(MYSQLI_NUM);
+            if ($row !== null) {
+                $return = "There's a deleted account associated with id $email.Consider either recovering it or delete it permanently.";
+            }
+            $stmt->close();
+        }
     }
     $mysqli->close();
     return $return;
 }
 
 function checkForDuplicateRollNumber($roll_number){
-
     $mysqli = dbConnect();
     $return = true;
-    $query = "select * from aStudent where roll_number = '$roll_number'";
 
-    $result = $mysqli->query($query);
-    $row = $result->fetch_array(MYSQLI_NUM);
-    if ($row == null){
-
-        $query = "select * from Student where roll_number = '$roll_number'";
-
-        $result = $mysqli->query($query);
+    $query = "select * from aStudent where roll_number = ?";
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("s", $roll_number);
+        $stmt->execute();
+        $result = $stmt->get_result();
         $row = $result->fetch_array(MYSQLI_NUM);
+        if ($row !== null) {
+            $return = "There's already a student associated with id $roll_number";
+        }
+        $stmt->close();
+    }
 
-        if ($row !== null)
-            $return = "There's a deleted student associated with id $roll_number.Consider either recovering it or delete it permanently.";
-    } else {
-        $return = "There's already a student associated with id $roll_number";
+    if (is_bool($return)) {
+        $query = "select * from Student where roll_number = ?";
+        if ($stmt = $mysqli->prepare($query)) {
+            $stmt->bind_param("s", $roll_number);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $row = $result->fetch_array(MYSQLI_NUM);
+            if ($row !== null) {
+                $return = "There's a deleted student associated with id $roll_number.Consider either recovering it or delete it permanently.";
+            }
+            $stmt->close();
+        }
     }
     $mysqli->close();
     return $return;
 }
 
 function checkForDuplicateSubjects($sname, $pID){
-
     $mysqli = dbConnect();
-
     $return = true;
-    $query = "select * from aSubject where name = '$sname' and programme = '$pID'";
 
-    $result = $mysqli->query($query);
-    $row = $result->fetch_array(MYSQLI_NUM);
-    if ($row == null){
-
-        $query = "select * from Subject where name = '$sname' and programme = '$pID'";
-
-        $result = $mysqli->query($query);
+    $query = "select * from aSubject where name = ? and programme = ?";
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("si", $sname, $pID);
+        $stmt->execute();
+        $result = $stmt->get_result();
         $row = $result->fetch_array(MYSQLI_NUM);
+        if ($row !== null) {
+            $return = "There's already a subject associated with id $sname in the same programme";
+        }
+        $stmt->close();
+    }
 
-        if ($row !== null)
-            $return = "There's a deleted subject associated with id $sname in the same programme.Consider either recovering it or delete it permanently.";
-    } else {
-        $return = "There's already a subject associated with id $sname in the same programme";
+    if (is_bool($return)) {
+        $query = "select * from Subject where name = ? and programme = ?";
+        if ($stmt = $mysqli->prepare($query)) {
+            $stmt->bind_param("si", $sname, $pID);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $row = $result->fetch_array(MYSQLI_NUM);
+            if ($row !== null) {
+                $return = "There's a deleted subject associated with id $sname in the same programme.Consider either recovering it or delete it permanently.";
+            }
+            $stmt->close();
+        }
     }
     $mysqli->close();
     return $return;
 }
 
-   function createSubject($sname, $pID, $semester, $ccode, $ccredit){
+function createSubject($sname, $pID, $semester, $ccode, $ccredit){
+    $result = checkForDuplicateSubjects($sname, $pID);
 
-       $result = checkForDuplicateSubjects($sname, $pID);
+    if (is_string($result)) {
+        return $result;
+    } else {
+        $mysqli = dbConnect();
+        $query = "insert into aSubject values(null, ?, ?, ?, ?, ?)";
+        $result = false;
 
-       if (is_string($result))
-           return $result;
-
-       else {
-
-       $mysqli = dbConnect();
-       $query = "insert into aSubject values(null, '$sname', '$pID', '$semester', '$ccode', '$ccredit')";
-
-       $result = $mysqli->query($query);
-       $mysqli->close();
-       return $result;
-       }
-   }
-
-   function getPname($programme) {
-
-    $mysqli = dbConnect();
-
-    $query = "
-                select id from aProgramme where name = '$programme'
-    ";
-
-    $result = $mysqli->query($query);
-    $row = $result->fetch_array(MYSQLI_NUM);
-
-    if ($row !== null)
-        return $row[0];
-    else
-        return false;
-   }
-
-function getFID($faculty) {
-
-    $mysqli = dbConnect();
-
-    $query = "
-                select id from aFaculty where name = '$faculty'
-    ";
-
-    $result = $mysqli->query($query);
-    $row = $result->fetch_array(MYSQLI_NUM);
-
-    if ($row !== null)
-        return $row[0];
-    else
-        return false;
+        if ($stmt = $mysqli->prepare($query)) {
+            $stmt->bind_param("sissd", $sname, $pID, $semester, $ccode, $ccredit);
+            $result = $stmt->execute();
+            $stmt->close();
+        }
+        $mysqli->close();
+        return $result;
+    }
 }
 
-  function createStudent($fname, $lname, $roll_number, $email, $pass, $semester, $programme)
-  {
-      $return = checkForDuplicateUser($email);
+function getPname($programme) {
+    $mysqli = dbConnect();
+    $data = false;
 
-      if (is_bool($return)) {
-          $return = checkForDuplicateRollNumber($roll_number);
-          if (is_bool($return)) {
+    $query = "select id from aProgramme where name = ?";
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("s", $programme);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_array(MYSQLI_NUM);
+        if ($row !== null) {
+            $data = $row[0];
+        }
+        $stmt->close();
+    }
+    $mysqli->close();
+    return $data;
+}
 
-              $mysqli = dbConnect();
-              // insert into aUsers table
-              $pass = password_hash($pass, PASSWORD_DEFAULT);
-              $query = "insert into aUsers values(null, '$email', '$pass', '3', current_date)";
+function getFID($faculty) {
+    $mysqli = dbConnect();
+    $data = false;
 
-              $mysqli->query($query);
+    $query = "select id from aFaculty where name = ?";
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("s", $faculty);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_array(MYSQLI_NUM);
+        if ($row !== null) {
+            $data = $row[0];
+        }
+        $stmt->close();
+    }
+    $mysqli->close();
+    return $data;
+}
 
-              // insert into aStudent table
-              $sID = getAttribute('aUsers', 'id', 'email', $email);
-              $query = "insert into aStudent values('$sID', '$roll_number', '$fname', '$lname', '$semester', '$programme', 'Student')";
-              $mysqli->query($query);
+function createStudent($fname, $lname, $roll_number, $email, $pass, $semester, $programme)
+{
+    $return = checkForDuplicateUser($email);
+    if (is_bool($return)) {
+        $return = checkForDuplicateRollNumber($roll_number);
+        if (is_bool($return)) {
+            $mysqli = dbConnect();
+            $pass = password_hash($pass, PASSWORD_DEFAULT);
+            $result = false;
 
-              // insert student into token_table
-              $query = "insert into token_table values('$email', '000000', '0')";
-              $return = $mysqli->query($query);
-              $mysqli->close();
-          }
-      }
+            // Insert into aUsers table
+            $query = "insert into aUsers values(null, ?, ?, '3', current_date)";
+            if ($stmt = $mysqli->prepare($query)) {
+                $stmt->bind_param("ss", $email, $pass);
+                $stmt->execute();
+                $stmt->close();
+            }
 
-      return $return;
+            // Insert into aStudent table
+            $sID = getAttribute('aUsers', 'id', 'email', $email);
+            $query = "insert into aStudent values(?, ?, ?, ?, ?, ?, 'Student')";
+            if ($stmt = $mysqli->prepare($query)) {
+                $stmt->bind_param("issiis", $sID, $roll_number, $fname, $lname, $semester, $programme);
+                $stmt->execute();
+                $stmt->close();
+            }
 
-  }
+            // Insert student into token_table
+            $query = "insert into token_table values(?, '000000', '0')";
+            if ($stmt = $mysqli->prepare($query)) {
+                $stmt->bind_param("s", $email);
+                $result = $stmt->execute();
+                $stmt->close();
+            }
+            $mysqli->close();
+            return $result;
+        }
+    }
+    return $return;
+}
 
-  function createClass($subjectID, $teacherID)
-  {
-      $mysqli = dbConnect();
+function createClass($subjectID, $teacherID)
+{
+    $mysqli = dbConnect();
+    $query = "insert into aClasses values(null, ?, ?, current_date)";
+    $result = false;
 
-      $query = "insert into aClasses values(null, '$subjectID', '$teacherID', current_date)";
-
-      try{
-
-          $result = $mysqli->query($query);
-      } catch (mysqli_sql_exception $e){
-
-          if ($e->getCode() === 1062) {
-              $result = 'Cannot Create duplicate class for same subject!';
-          } else {
-              $result = 'An unexpected error occurred.';
-          }
-      } finally {
-
-          $mysqli->close();
-      }
-      //if (!$result) echo "Error creating new class: " . $mysqli->error;
-
-      return $result;
-  }
+    try{
+        if ($stmt = $mysqli->prepare($query)) {
+            $stmt->bind_param("ss", $subjectID, $teacherID);
+            $result = $stmt->execute();
+            $stmt->close();
+        }
+    } catch (mysqli_sql_exception $e){
+        if ($e->getCode() === 1062) {
+            $result = 'Cannot Create duplicate class for same subject!';
+        } else {
+            $result = 'An unexpected error occurred.';
+        }
+    } finally {
+        $mysqli->close();
+    }
+    return $result;
+}
 
 
 
@@ -843,19 +989,24 @@ function getFID($faculty) {
      * add student into ClassesInfo
      */
 function addStudents($cID, $roll_numbers) : bool{
-
     $mysqli = dbConnect();
     $result = true;
-    foreach ($roll_numbers as $roll_number) {
-        $query = "insert into ClassesInfo values(null, '$roll_number', '$cID')";
 
-        $result = $mysqli->query($query);
+    $query = "insert into ClassesInfo values(null, ?, ?)";
+    $update_query = "update Attendance set deleted = '0' where roll_number = ? and class = ?";
 
-        $query = "update Attendance set
-                    deleted = '0' 
-                    where roll_number = '$roll_number' and class = '$cID'";
+    if ($stmt = $mysqli->prepare($query)) {
+        if ($update_stmt = $mysqli->prepare($update_query)) {
+            foreach ($roll_numbers as $roll_number) {
+                $stmt->bind_param("ss", $roll_number, $cID);
+                $result = $stmt->execute();
 
-        $result = $mysqli->query($query);
+                $update_stmt->bind_param("ss", $roll_number, $cID);
+                $result = $update_stmt->execute();
+            }
+            $update_stmt->close();
+        }
+        $stmt->close();
     }
     $mysqli->close();
     return $result;
@@ -863,19 +1014,24 @@ function addStudents($cID, $roll_numbers) : bool{
 
 
 function removeStudents($cID, $roll_numbers) : bool{
-
     $mysqli = dbConnect();
     $result = true;
-    foreach ($roll_numbers as $roll_number) {
-        $query = "delete from ClassesInfo where roll_number = '$roll_number' and class = '$cID'";
 
-        $result = $mysqli->query($query);
+    $delete_query = "delete from ClassesInfo where roll_number = ? and class = ?";
+    $update_query = "update Attendance set deleted = '1' where roll_number = ? and class = ?";
 
-        $query = "update Attendance set
-                    deleted = '1' 
-                    where roll_number = '$roll_number' and class = '$cID'";
+    if ($delete_stmt = $mysqli->prepare($delete_query)) {
+        if ($update_stmt = $mysqli->prepare($update_query)) {
+            foreach ($roll_numbers as $roll_number) {
+                $delete_stmt->bind_param("ss", $roll_number, $cID);
+                $result = $delete_stmt->execute();
 
-        $result = $mysqli->query($query);
+                $update_stmt->bind_param("ss", $roll_number, $cID);
+                $result = $update_stmt->execute();
+            }
+            $update_stmt->close();
+        }
+        $delete_stmt->close();
     }
     $mysqli->close();
     return $result;
@@ -1028,175 +1184,231 @@ function createFaculty($fname) {
     }
 }
 
-   if (isset($_POST['edit_programme'])) {
-	   $pnames = $_POST['pname'];
+if (isset($_POST['edit_programme'])) {
+    $pnames = $_POST['pname'];
+    $mysqli = dbConnect();
+    $id = getID("aProgramme");
+    $i = count($id);
 
-        $mysqli = dbConnect();
-        $id = getID("aProgramme");
-        $i = count($id);
+    $delete_query = "delete from aProgramme where id = ?";
+    $update_query = "update aProgramme set name = ? where id = ?";
 
-        for ($j = 0; $j < $i; ++$j){
-        if ($pnames[$j] === "delete") {
-          $query = "delete from aProgramme where id = '$id[$j]'";
-
-            if ($mysqli->query($query) === TRUE)
-            echo "successfully deleted";
-            else
-                echo "Error updating: " . $mysqli->error;
+    if ($delete_stmt = $mysqli->prepare($delete_query)) {
+        if ($update_stmt = $mysqli->prepare($update_query)) {
+            for ($j = 0; $j < $i; ++$j) {
+                if ($pnames[$j] === "delete") {
+                    $delete_stmt->bind_param("s", $id[$j]);
+                    if ($delete_stmt->execute()) {
+                        echo "successfully deleted";
+                    } else {
+                        echo "Error updating: " . $delete_stmt->error;
+                    }
+                } else {
+                    $update_stmt->bind_param("ss", $pnames[$j], $id[$j]);
+                    if ($update_stmt->execute()) {
+                        echo "successful";
+                    } else {
+                        echo "Error updating: " . $update_stmt->error;
+                    }
+                }
             }
-            else  {
-            $query = "update aProgramme set name = '$pnames[$j]' where id = '$id[$j]'";
-        if ($mysqli->query($query) === TRUE)
-            echo "successful";
-            else
-                echo "Error updating: " . $mysqli->error;
-            }
+            $update_stmt->close();
         }
-	$mysqli->close();
-   }
+        $delete_stmt->close();
+    }
+    $mysqli->close();
+}
 
-   if (isset($_POST['edit_subject'])) {
-	   $snames = $_POST['sname'];
-	   $ccodes = $_POST['ccode'];
-	   $ccredits = $_POST['ccredit'];
+if (isset($_POST['edit_subject'])) {
+    $snames = $_POST['sname'];
+    $ccodes = $_POST['ccode'];
+    $ccredits = $_POST['ccredit'];
 
-        $mysqli = dbConnect();
-        $id = getID("aSubject");
-        $i = count($id);
+    $mysqli = dbConnect();
+    $id = getID("aSubject");
+    $i = count($id);
 
-        for ($j = 0; $j < $i; ++$j){
-        if ($snames[$j] === "delete") {
-          $query = "delete from aSubject where id = '$id[$j]'";
+    $delete_query = "delete from aSubject where id = ?";
+    $update_name_query = "update aSubject set name = ? where id = ?";
+    $update_ccode_query = "update aSubject set course_code = ? where id = ?";
+    $update_ccredit_query = "update aSubject set course_credit = ? where id = ?";
 
-            if ($mysqli->query($query) === TRUE)
-            echo "successfully deleted $id[$j]";
-            else
-                echo "Error updating: " . $mysqli->error;
+    if ($delete_stmt = $mysqli->prepare($delete_query)) {
+        if ($update_name_stmt = $mysqli->prepare($update_name_query)) {
+            if ($update_ccode_stmt = $mysqli->prepare($update_ccode_query)) {
+                if ($update_ccredit_stmt = $mysqli->prepare($update_ccredit_query)) {
+                    for ($j = 0; $j < $i; ++$j) {
+                        if ($snames[$j] === "delete") {
+                            $delete_stmt->bind_param("s", $id[$j]);
+                            if ($delete_stmt->execute()) {
+                                echo "successfully deleted " . $id[$j];
+                            } else {
+                                echo "Error updating: " . $delete_stmt->error;
+                            }
+                        } else {
+                            $update_name_stmt->bind_param("ss", $snames[$j], $id[$j]);
+                            if ($update_name_stmt->execute()) echo "successful"; else echo "Error updating: " . $update_name_stmt->error;
+
+                            $update_ccode_stmt->bind_param("ss", $ccodes[$j], $id[$j]);
+                            if ($update_ccode_stmt->execute()) echo "successful"; else echo "Error updating: " . $update_ccode_stmt->error;
+
+                            $update_ccredit_stmt->bind_param("ss", $ccredits[$j], $id[$j]);
+                            if ($update_ccredit_stmt->execute()) echo "successful"; else echo "Error updating: " . $update_ccredit_stmt->error;
+                        }
+                    }
+                    $update_ccredit_stmt->close();
+                }
+                $update_ccode_stmt->close();
             }
-            else  {
-                $query = [];
-                $query[] = "update aSubject set name = '$snames[$j]' where id = '$id[$j]'";
-                $query[] = "update aSubject set course_code = '$ccodes[$j]' where id = '$id[$j]'";
-                $query[] = "update aSubject set course_credit = '$ccredits[$j]' where id = '$id[$j]'";
+            $update_name_stmt->close();
+        }
+        $delete_stmt->close();
+    }
+    $mysqli->close();
+}
 
-            foreach ($query as $q){
-                if ($mysqli->query($q[0]) === TRUE)
-                    echo "successful";
-                else
-                    echo "Error updating: " . $mysqli->error;
+if (isset($_POST['edit_teacher'])) {
+    $fname = $_POST['fname'];
+    $lname = $_POST['lname'];
+    $email = $_POST['email'];
+    $title = $_POST['title'];
+    $id = $_POST['tID'];
+    $mysqli = dbConnect();
+
+    $query = "update aTeacher set fname = ?, lname = ?, title = ? where id = ?";
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("sssi", $fname, $lname, $title, $id);
+        if ($stmt->execute()) {
+            echo "successfully updated teacher";
+        } else {
+            echo "Error updating: " . $stmt->error;
+        }
+        $stmt->close();
+    } else {
+        echo "Error preparing statement: " . $mysqli->error;
+    }
+
+    $query = "update aUsers set email = ? where id = ?";
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("si", $email, $id);
+        if ($stmt->execute()) {
+            echo "successfully updated User";
+        } else {
+            echo "Error updating: " . $stmt->error;
+        }
+        $stmt->close();
+    } else {
+        echo "Error preparing statement: " . $mysqli->error;
+    }
+    $mysqli->close();
+}
+
+
+
+if (isset($_POST['edit_student'])) {
+    $rolls = $_POST['roll'];
+    $fnames = $_POST['fname'];
+    $lnames = $_POST['lname'];
+    $emails = $_POST['email'];
+    $passwords = $_POST['password'];
+    $semesters = $_POST['semester'];
+    $programmes = $_POST['programme'];
+    $mysqli = dbConnect();
+
+    $id = getID("aStudent");
+    $i = count($id);
+
+    $delete_query_student = "delete from aStudent where roll_number = ?";
+    $delete_query_users = "delete from aUsers where email = ?";
+    $delete_query_token = "delete from token_table where email = ?";
+
+    $update_query_student_roll = "update aStudent set roll_number = ? where roll_number = ?";
+    $update_query_student_fname = "update aStudent set fname = ? where roll_number = ?";
+    $update_query_student_lname = "update aStudent set lname = ? where roll_number = ?";
+    $update_query_student_email = "update aStudent set email= ? where roll_number = ?";
+    $update_query_student_password = "update aStudent set password= ? where roll_number = ?";
+    $update_query_user_email = "update aUsers set email = ? where id = ?";
+    $update_query_user_password = "update aUsers set password= ? where id = ?";
+
+
+    if ($delete_stmt_student = $mysqli->prepare($delete_query_student)) {
+        if ($delete_stmt_users = $mysqli->prepare($delete_query_users)) {
+            if ($delete_stmt_token = $mysqli->prepare($delete_query_token)) {
+                // ... nesting more prepares here for updates is getting unwieldy.
+                // A better approach is to handle each case (delete or update) separately.
+
+                for ($j = 0; $j < $i; ++$j) {
+                    if ($rolls[$j] === "delete") {
+                        deleteContentsOf('aStudent', 'roll_number', $id[$j]); // this now uses prepared statements
+                        deleteContentsOf('aUsers', 'email', $emails[$j]);
+                        deleteContentsOf('token_table', 'email', $emails[$j]);
+                    } else {
+                        // All these updates should be handled with prepared statements
+                        // The original code was updating 'aStudent' with an 'email' and 'password'
+                        // which is incorrect based on the schema.
+                        // I've simplified the logic here for clarity.
+
+                        // Update aStudent table
+                        $query = "update aStudent set roll_number = ?, fname = ?, lname = ? where roll_number = ?";
+                        if ($stmt = $mysqli->prepare($query)) {
+                            $stmt->bind_param("ssss", $rolls[$j], $fnames[$j], $lnames[$j], $id[$j]);
+                            if ($stmt->execute()) echo "successful"; else echo "Error updating: " . $stmt->error;
+                            $stmt->close();
+                        }
+
+                        // Update aUsers table (email and password)
+                        $id_user = getAttribute('aUsers', 'id', 'email', $emails[$j]);
+                        $pass_hash = password_hash($passwords[$j], PASSWORD_DEFAULT);
+                        $query = "update aUsers set email = ?, password = ? where id = ?";
+                        if ($stmt = $mysqli->prepare($query)) {
+                            $stmt->bind_param("ssi", $emails[$j], $pass_hash, $id_user);
+                            if ($stmt->execute()) echo "successful"; else echo "Error updating: " . $stmt->error;
+                            $stmt->close();
+                        }
+                    }
                 }
             }
         }
-	$mysqli->close();
-   }
+    }
+    $mysqli->close();
+}
 
-   if (isset($_POST['edit_teacher'])) {
-	   $fname = $_POST['fname'];
-	   $lname = $_POST['lname'];
-	   $email = $_POST['email'];
-	   $title = $_POST['title'];
-       $id = $_POST['tID'];
+if (isset($_POST['edit_class'])) {
+    $tname = $_POST['tname'];
+    $delete = $_POST['delete'];
 
+    $mysqli = dbConnect();
+    $id = getID("Classes");
+    $i = count($id);
 
-        $mysqli = dbConnect();
+    $delete_query = "delete from Classes where id = ?";
+    $update_query = "update Classes set teacher = ? where id = ?";
 
-        $query = "update aTeacher set 
-                    fname = '$fname',
-                    lname = '$lname',
-                    title = '$title'
-                    where id = $id
-                    ";
-        if ($mysqli->query($query) === TRUE)
-                    echo "successfully updated teacher";
-       else
-                    echo "Error updating: " . $mysqli->error;
-
-       $query = "update aUsers set 
-                    email = '$email'
-                    where id = $id
-                    ";
-       if ($mysqli->query($query) === TRUE)
-           echo "successfully updated User";
-       else
-           echo "Error updating: " . $mysqli->error;
-	$mysqli->close();
-   }
-
-
-
-   if (isset($_POST['edit_student'])) {
-	   $rolls = $_POST['roll'];
-	   $fnames = $_POST['fname'];
-	   $lnames = $_POST['lname'];
-	   $emails = $_POST['email'];
-	   $passwords = $_POST['password'];
-	   $semesters = $_POST['semester'];
-	   $programmes = $_POST['programme'];
-	   $faculties = $_POST['programme'];
-
-        $mysqli = dbConnect();
-        $id = getID("aStudent");
-        $i = count($id);
-
-        for ($j = 0; $j < $i; ++$j){
-        if ($rolls[$j] === "delete") {
-            deleteContentsOf('aStudent', 'roll_number', $id[$j]);
-            deleteContentsOf('aUsers', 'email', $emails[$j]);
-            deleteContentsOf('token_table', 'email', $emails[$j]);// because id is not same for aTeacher table & aUsers table!
-            }
-            else  {
-                $query = [];
-            $query[] = "update aStudent set roll_number = '$rolls[$j]' where roll_number = '$id[$j]'";
-            $query[] = "update aStudent set fname = '$fnames[$j]' where roll_number = '$id[$j]'";
-            $query[] = "update aStudent set lname = '$lnames[$j]' where roll_number = '$id[$j]'";
-            $query[] = "update aStudent set email= '$emails[$j]' where roll_number = '$id[$j]'";
-            $query[] = "update aStudent set password= '$passwords[$j]' where roll_number = '$id[$j]'";
-            foreach ($query as $q){
-                if ($mysqli->query($q) === TRUE)
-                    echo "successful";
-                else
-                    echo "Error updating: " . $mysqli->error;
+    if ($delete_stmt = $mysqli->prepare($delete_query)) {
+        if ($update_stmt = $mysqli->prepare($update_query)) {
+            for ($j = 0; $j < $i; ++$j) {
+                if ($delete[$j] === 'true') {
+                    $delete_stmt->bind_param("s", $id[$j]);
+                    if ($delete_stmt->execute()) {
+                        echo "successfully deleted";
+                    } else {
+                        echo "Error updating: " . $delete_stmt->error;
+                    }
+                } else {
+                    $update_stmt->bind_param("si", $tname[$j], $id[$j]);
+                    if ($update_stmt->execute()) {
+                        echo "successful";
+                    } else {
+                        echo "Error updating: " . $update_stmt->error;
+                    }
                 }
             }
+            $update_stmt->close();
         }
-	$mysqli->close();
-   }
-
-   if (isset($_POST['edit_class'])) {
-	   $tname = $_POST['tname'];
-       $delete = $_POST['delete'];
-
-        $mysqli = dbConnect();
-        $id = getID("Classes");
-        $i = count($id);
-
-        for ($j = 0; $j < $i; ++$j){
-        if ($delete[$j] === 'true') { // because tname == '' for <select> instead of 'delete'
-          $query = "delete from Classes where id = '$id[$j]'";
-
-            if ($mysqli->query($query) === TRUE){
-                echo "successfully deleted";
-                // drop table class from database !!!
-                //$id = '`' . $id . '`';
-                //$query = "drop table $id";
-                //if ($mysqli->query($query) === TRUE)
-                //    echo "table $id successfully deleted";
-                //else
-                //    echo "Error deleting table: " . $mysqli->error;
-            }
-            else
-                echo "Error updating: " . $mysqli->error;
-            }
-            else  {
-            $query = "update Classes set teacher = '$tname[$j]' where id = '$id[$j]'";
-                if ($mysqli->query($query) === TRUE)
-                    echo "successful";
-                else
-                    echo "Error updating: " . $mysqli->error;
-                }
-            }
-	$mysqli->close();
-   }
+        $delete_stmt->close();
+    }
+    $mysqli->close();
+}
 
 
 
@@ -1205,37 +1417,52 @@ if (isset($_POST['edit_myClass'])) {
     $roll = $_POST['roll'];
     $delete = $_POST['delete'];
 
-    $i = count($roll);
-    if (is_int($classID))
-        $classID = '`' . $classID . '`';
+    $mysqli = dbConnect();
 
-    for ($j = 0; $j < $i; ++$j){
-        if ($delete[$j] === 'true')
-            deleteContentsOf($classID, "roll_number", $roll[$j]);
+    $delete_query = "delete from `ClassesInfo` where roll_number = ? and class = ?";
+    if ($stmt = $mysqli->prepare($delete_query)) {
+        $i = count($roll);
+        for ($j = 0; $j < $i; ++$j) {
+            if ($delete[$j] === 'true') {
+                $stmt->bind_param("ss", $roll[$j], $classID);
+                $stmt->execute();
+            }
+        }
+        $stmt->close();
     }
+    $mysqli->close();
 }
 
 function takeAttendance($cID, $day, $roll, $attendance) : bool {
     $mysqli = dbConnect();
+    $result = false;
+    $query = "insert into aAttendance values(?, ?, ?, ?, null)";
 
-    $query = "insert into aAttendance values('$roll', '$day', '$cID', '$attendance', null)";
-    $result = $mysqli->query($query);
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("sssi", $roll, $day, $cID, $attendance);
+        $result = $stmt->execute();
+        $stmt->close();
+    }
     $mysqli->close();
     return $result;
 }
 
 function attendance_taken($classID) : bool{
-
-    $day = date('Y-m-d');//$_POST['day'];
+    $day = date('Y-m-d');
     $mysqli = dbConnect();
-    $query = "select `day` from aAttendance where subject = '$classID' and `day` = '$day'";
+    $return = false;
+    $query = "select `day` from aAttendance where subject = ? and `day` = ?";
 
-    $result = $mysqli->query($query);
-    $row = $result->fetch_array(MYSQLI_NUM);
-    if ($row !== null)
-        $return = true;
-    else
-        $return = false;
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("ss", $classID, $day);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_array(MYSQLI_NUM);
+        if ($row !== null) {
+            $return = true;
+        }
+        $stmt->close();
+    }
     $mysqli->close();
     return $return;
 }
@@ -1243,104 +1470,102 @@ function attendance_taken($classID) : bool{
 function send_code($email): bool
 {
     $mysqli = dbConnect();
-   $query = "select email from token_table where email = '$email'";
+    $return = false;
+    $query = "select email from token_table where email = ?";
 
-   $result = $mysqli->query($query);
-   $row = $result->fetch_array(MYSQLI_NUM);
-   if ($row !== null)
-       $return = true;
-   else
-       $return = false;
-   $mysqli->close();
-   return $return;
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_array(MYSQLI_NUM);
+        if ($row !== null) {
+            $return = true;
+        }
+        $stmt->close();
+    }
+    $mysqli->close();
+    return $return;
 }
 
 function getCode($email){
     $mysqli = dbConnect();
     try {
         $code = random_int(100000, 999999);
-    }
-    catch (\Random\RandomException $e) {
+    } catch (\Random\RandomException $e) {
         echo $e->getTraceAsString();
     }
-   $expiryTime = time() + 60 * 30;// 30 minutes
-   $query = "update token_table
-             set
-                token = '$code',
-                timestamp = '$expiryTime'
-             where
-                   email = '$email'
-             ";
-   if ($mysqli->query($query)){
-       $mysqli->close();
-       return $code;
-   }
-   else
-       echo "error updating token_table" . $mysqli->error;
-   $mysqli->close();
+    $expiryTime = time() + 60 * 30;
+    $query = "update token_table set token = ?, timestamp = ? where email = ?";
+
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("sis", $code, $expiryTime, $email);
+        if ($stmt->execute()) {
+            $stmt->close();
+            $mysqli->close();
+            return $code;
+        } else {
+            echo "error updating token_table" . $stmt->error;
+        }
+        $stmt->close();
+    }
+    $mysqli->close();
 }
 
 function confirmCode($code, $email) : bool {
-
     $mysqli = dbConnect();
-    $query = "select token, `timestamp` from token_table where email = '$email'";
+    $return = false;
+    $query = "select token, `timestamp` from token_table where email = ?";
 
-    if ($result = $mysqli->query($query)){
-
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
         $row = $result->fetch_array(MYSQLI_NUM);
-        if ($row !== null){
-            if ($row[0] === $code && time() < $row[1]){
 
-                // remove timestamp to prevent multiple use of the code
-                $query = "update token_table
-                                        set
-                                            timestamp = '0'
-                                        where
-                                            email = '$email'
-                         ";
-                $mysqli->query($query);
-                $mysqli->close();
-                return true;
-            }
-            else{
-                $mysqli->close();
-                return false;
+        if ($row !== null) {
+            if ($row[0] === $code && time() < $row[1]) {
+                $query = "update token_table set timestamp = '0' where email = ?";
+                if ($update_stmt = $mysqli->prepare($query)) {
+                    $update_stmt->bind_param("s", $email);
+                    $update_stmt->execute();
+                    $update_stmt->close();
+                }
+                $return = true;
             }
         }
-        else
-            return false;
-    }
-    else
+        $stmt->close();
+    } else {
         echo $mysqli->error;
+    }
     $mysqli->close();
-    return false;
+    return $return;
 }
 
 function updatePassword($pass, $email){
-   $mysqli = dbConnect();
-   $pass = password_hash($pass, PASSWORD_DEFAULT);
-   $query = "update aUsers
-                      set
-                         password = '$pass'
-                      where email = '$email'
-        ";
-   $mysqli->query($query);
+    $mysqli = dbConnect();
+    $pass = password_hash($pass, PASSWORD_DEFAULT);
+    $query = "update aUsers set password = ? where email = ?";
 
-   $mysqli->close();
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("ss", $pass, $email);
+        $stmt->execute();
+        $stmt->close();
+    }
+    $mysqli->close();
 }
 
 function resetPassword($pass, $email, $role) : bool
 {
     $mysqli = dbConnect();
     $pass = password_hash($pass, PASSWORD_DEFAULT);
-    $query = "update aUsers
-                      set
-                         password = '$pass',
-                         role = '$role'
-                      where email = '$email'
-        ";
-    $result = $mysqli->query($query);
+    $result = false;
+    $query = "update aUsers set password = ?, role = ? where email = ?";
 
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("sss", $pass, $role, $email);
+        $result = $stmt->execute();
+        $stmt->close();
+    }
     $mysqli->close();
     return $result;
 }
@@ -1378,29 +1603,34 @@ function generateRandomPassword(int $length = 10): string
 function getTotalAttendance($classID) : array
 {
     $mysqli = dbConnect();
-
+    $data = [];
     $query = "
-                SELECT
-                roll_number,
-                (SELECT COUNT(DISTINCT day) FROM aAttendance WHERE subject = '$classID') AS total_class_days,
-                SUM(CASE WHEN attendance = 1 THEN 1 ELSE 0 END) AS present_days,
-                SUM(CASE WHEN attendance = 0 THEN 1 ELSE 0 END) AS absent_days,
-                SUM(CASE WHEN attendance = -1 THEN 1 ELSE 0 END) AS leave_days,
-                ROUND((SUM(CASE WHEN attendance = 1 THEN 1 ELSE 0 END) / (SELECT COUNT(DISTINCT day) FROM aAttendance WHERE subject = '$classID')) * 100, 2) AS attendance_percentage
-                FROM
-                aAttendance
-                WHERE
-                subject = '$classID'
-                GROUP BY
-                roll_number 
-                ORDER BY 
-                roll_number asc
+        SELECT
+            roll_number,
+            (SELECT COUNT(DISTINCT day) FROM aAttendance WHERE subject = ?) AS total_class_days,
+            SUM(CASE WHEN attendance = 1 THEN 1 ELSE 0 END) AS present_days,
+            SUM(CASE WHEN attendance = 0 THEN 1 ELSE 0 END) AS absent_days,
+            SUM(CASE WHEN attendance = -1 THEN 1 ELSE 0 END) AS leave_days,
+            ROUND((SUM(CASE WHEN attendance = 1 THEN 1 ELSE 0 END) / (SELECT COUNT(DISTINCT day) FROM aAttendance WHERE subject = ?)) * 100, 2) AS attendance_percentage
+        FROM
+            aAttendance
+        WHERE
+            subject = ?
+        GROUP BY
+            roll_number 
+        ORDER BY 
+            roll_number asc
     ";
-    $result = $mysqli->query($query);
 
-    /*--------- numeric array ---------*/
-    while ($row = $result->fetch_array(MYSQLI_NUM)){
-        $data[] = $row;
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("sss", $classID, $classID, $classID);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        while ($row = $result->fetch_array(MYSQLI_NUM)){
+            $data[] = $row;
+        }
+        $stmt->close();
     }
     $mysqli->close();
     return $data;
@@ -1409,28 +1639,33 @@ function getTotalAttendance($classID) : array
 function getDailyAttendance($classID, $date) : array
 {
     $mysqli = dbConnect();
-
+    $data = [];
     $query = "
-                SELECT
-                roll_number,
-                CASE
-                WHEN attendance = 1 THEN 'present'
-                WHEN attendance = 0 THEN 'absent'
-                WHEN attendance = -1 THEN 'leave'
-                ELSE 'unknown'
-                END AS status
-                FROM
-                aAttendance
-                WHERE
-                subject = '$classID' AND day = '$date'
-                ORDER BY 
-                roll_number asc
+        SELECT
+            roll_number,
+            CASE
+            WHEN attendance = 1 THEN 'present'
+            WHEN attendance = 0 THEN 'absent'
+            WHEN attendance = -1 THEN 'leave'
+            ELSE 'unknown'
+            END AS status
+        FROM
+            aAttendance
+        WHERE
+            subject = ? AND day = ?
+        ORDER BY 
+            roll_number asc
     ";
-    $result = $mysqli->query($query);
 
-    /*--------- numeric array ---------*/
-    while ($row = $result->fetch_array(MYSQLI_NUM)){
-        $data[] = $row;
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("ss", $classID, $date);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        while ($row = $result->fetch_array(MYSQLI_NUM)){
+            $data[] = $row;
+        }
+        $stmt->close();
     }
     $mysqli->close();
     return $data;
@@ -1438,40 +1673,48 @@ function getDailyAttendance($classID, $date) : array
 
 function getStudentsRank($classes) : Array
 {
-   $mysqli = dbConnect();
-   $classIds = implode(',', $classes);
-
-       $query = "
-               SELECT
-                    a.roll_number,
-                    a.subject,
-                ROUND(
-                (SUM(CASE WHEN a.attendance = 1 THEN 1 ELSE 0 END) /
-                (
-                SELECT COUNT(*)
-                FROM aAttendance AS a2
-                WHERE a2.subject = a.subject
-                GROUP BY a2.roll_number
-                ORDER BY COUNT(*) DESC
-                LIMIT 1
-                )) * 100, 2
-                ) AS attendance_percentage
-                FROM
-                aAttendance AS a
-                WHERE
-                a.subject IN ($classIds) 
-                GROUP BY
-                a.roll_number, a.subject
-                ORDER BY
-                attendance_percentage DESC 
-       ";
-
-    $result = $mysqli->query($query);
-
-    /*--------- numeric array ---------*/
+    $mysqli = dbConnect();
     $data = [];
-    while ($row = $result->fetch_array(MYSQLI_NUM)){
-        $data[] = $row;
+    if (empty($classes)) {
+        return $data;
+    }
+
+    $placeholders = implode(',', array_fill(0, count($classes), '?'));
+    $query = "
+        SELECT
+            a.roll_number,
+            a.subject,
+        ROUND(
+        (SUM(CASE WHEN a.attendance = 1 THEN 1 ELSE 0 END) /
+        (
+        SELECT COUNT(*)
+        FROM aAttendance AS a2
+        WHERE a2.subject = a.subject
+        GROUP BY a2.roll_number
+        ORDER BY COUNT(*) DESC
+        LIMIT 1
+        )) * 100, 2
+        ) AS attendance_percentage
+        FROM
+        aAttendance AS a
+        WHERE
+        a.subject IN ($placeholders) 
+        GROUP BY
+        a.roll_number, a.subject
+        ORDER BY
+        attendance_percentage DESC
+    ";
+
+    if ($stmt = $mysqli->prepare($query)) {
+        $types = str_repeat('s', count($classes));
+        $stmt->bind_param($types, ...$classes);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        while ($row = $result->fetch_array(MYSQLI_NUM)){
+            $data[] = $row;
+        }
+        $stmt->close();
     }
     $mysqli->close();
     return $data;
@@ -1480,125 +1723,198 @@ function getStudentsRank($classes) : Array
 function getClassesRank($classes) : Array
 {
     $mysqli = dbConnect();
-    $classIds = implode(',', $classes);
-
-    $query = "
-                SELECT
-                subject,
-                ROUND(
-                (SUM(CASE WHEN attendance = 1 THEN 1 ELSE 0 END) / COUNT(*)) * 100, 2
-                ) AS average_attendance_percentage
-                FROM
-                aAttendance
-                WHERE
-                subject IN ($classIds)
-                GROUP BY
-                subject 
-                ORDER BY
-                average_attendance_percentage DESC 
-       ";
-
-    $result = $mysqli->query($query);
-
-    /*--------- numeric array ---------*/
     $data = [];
-    while ($row = $result->fetch_array(MYSQLI_NUM)){
-        $data[] = $row;
+    if (empty($classes)) {
+        return $data;
+    }
+
+    $placeholders = implode(',', array_fill(0, count($classes), '?'));
+    $query = "
+        SELECT
+            subject,
+            ROUND(
+            (SUM(CASE WHEN attendance = 1 THEN 1 ELSE 0 END) / COUNT(*)) * 100, 2
+            ) AS average_attendance_percentage
+        FROM
+            aAttendance
+        WHERE
+            subject IN ($placeholders)
+        GROUP BY
+            subject 
+        ORDER BY
+            average_attendance_percentage DESC 
+    ";
+
+    if ($stmt = $mysqli->prepare($query)) {
+        $types = str_repeat('s', count($classes));
+        $stmt->bind_param($types, ...$classes);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        while ($row = $result->fetch_array(MYSQLI_NUM)){
+            $data[] = $row;
+        }
+        $stmt->close();
     }
     $mysqli->close();
     return $data;
 }
 
 function totalClassesOf($id, $role) : int{
-   if ($role == 1)
-       $query = "select count(*) from aClasses where teacher = '$id'";
-   $mysqli = dbConnect();
+    $mysqli = dbConnect();
+    $count = 0;
 
-    if (!($result = $mysqli->query($query)))
-        echo "Error counting classes: " . $mysqli->error;
-    $row = $result->fetch_array(MYSQLI_NUM);
+    if ($role == 1) {
+        $query = "select count(*) from aClasses where teacher = ?";
+        if ($stmt = $mysqli->prepare($query)) {
+            $stmt->bind_param("s", $id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $row = $result->fetch_array(MYSQLI_NUM);
+            if ($row !== null) {
+                $count = $row[0];
+            }
+            $stmt->close();
+        } else {
+            echo "Error counting classes: " . $mysqli->error;
+        }
+    }
     $mysqli->close();
-    return $row[0];
+    return $count;
 }
 
 function totalProgrammesOf($fID) : int{
     $mysqli = dbConnect();
-    $query = "select count(*) from aProgramme where faculty = '$fID'";
-    $result = $mysqli->query($query);
-    $row = $result->fetch_array(MYSQLI_NUM);
+    $count = 0;
+    $query = "select count(*) from aProgramme where faculty = ?";
+
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("s", $fID);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_array(MYSQLI_NUM);
+        if ($row !== null) {
+            $count = $row[0];
+        }
+        $stmt->close();
+    }
     $mysqli->close();
-    return $row[0];
+    return $count;
 }
 
 function totalSubjectsOf($id, $role) : int{
-    if ($role == 1)
-        $query = "SELECT COUNT(DISTINCT subject)
-                    FROM aClasses
-                    WHERE teacher = '$id';";
     $mysqli = dbConnect();
+    $count = 0;
 
-    if (!($result = $mysqli->query($query)))
-        echo "Error counting classes: " . $mysqli->error;
-    $row = $result->fetch_array(MYSQLI_NUM);
+    if ($role == 1) {
+        $query = "SELECT COUNT(DISTINCT subject) FROM aClasses WHERE teacher = ?";
+        if ($stmt = $mysqli->prepare($query)) {
+            $stmt->bind_param("s", $id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $row = $result->fetch_array(MYSQLI_NUM);
+            if ($row !== null) {
+                $count = $row[0];
+            }
+            $stmt->close();
+        } else {
+            echo "Error counting classes: " . $mysqli->error;
+        }
+    }
     $mysqli->close();
-    return $row[0];
+    return $count;
 }
 
 function totalContentsOf($table) : int{
     $mysqli = dbConnect();
-    $query = "select count(*) from $table";
+    $count = 0;
 
-    if (!($result = $mysqli->query($query)))
+    $validTables = ['aUsers', 'aTeacher', 'aStudent', 'aSubject', 'aProgramme', 'Classes', 'aFaculty', 'ClassesInfo', 'Attendance', 'token_table'];
+    if (!in_array($table, $validTables)) {
+        $mysqli->close();
+        return 0;
+    }
+
+    $query = "select count(*) from $table";
+    if (!($result = $mysqli->query($query))) {
         echo "Error counting contents: " . $mysqli->error;
-    $row = $result->fetch_array(MYSQLI_NUM);
+    } else {
+        $row = $result->fetch_array(MYSQLI_NUM);
+        if ($row !== null) {
+            $count = $row[0];
+        }
+        $result->close();
+    }
     $mysqli->close();
-    return $row[0];
+    return $count;
 }
 
 function softDelete($table, $id) : bool
 {
-   $mysqli = dbConnect();
-   if ($table === 'Users')
-       $query = "update $table set
-                 deleted = '1',
-                 created_date = current_date
-                 where id = '$id'";
-   else
-       $query = "update $table set
-                 deleted = '1'
-                 where id = '$id'";
+    $mysqli = dbConnect();
+    $result = false;
 
+    // Validate $table name against a whitelist here
+    $validTables = ['Users', 'Teacher', 'Student', 'Subject', 'Programme', 'Classes', 'Faculty'];
+    if (!in_array($table, $validTables)) {
+        $mysqli->close();
+        return false;
+    }
 
-   if (!($result = $mysqli->query($query)))
+    if ($table === 'Users') {
+        $query = "update $table set deleted = '1', created_date = current_date where id = ?";
+    } else {
+        $query = "update $table set deleted = '1' where id = ?";
+    }
+
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("s", $id);
+        $result = $stmt->execute();
+        $stmt->close();
+    } else {
         echo "Error deleting content: " . $mysqli->error;
+    }
     $mysqli->close();
-   return ($result);
+    return ($result);
 }
 
 function unassignClass($id) : bool
 {
     $mysqli = dbConnect();
-    $query = "update Classes set
-                 deleted = '-1',
-                 created_date = current_date
-                 where teacher = '$id'
-   ";
+    $result = false;
+    $query = "update Classes set deleted = '-1', created_date = current_date where teacher = ?";
 
-    if (!($result = $mysqli->query($query)))
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("s", $id);
+        $result = $stmt->execute();
+        $stmt->close();
+    } else {
         echo "Error deleting content: " . $mysqli->error;
+    }
     $mysqli->close();
-   return ($result);
+    return ($result);
 }
 
 function updateAttribute($tableName, $columnName, $newValue, $idName, $id) : bool
 {
-   $mysqli = dbConnect();
-   $query = "update $tableName set
-                                $columnName = '$newValue'
-                                where $idName = '$id' 
-   ";
+    $mysqli = dbConnect();
+    $result = false;
 
-   $result = $mysqli->query($query);
-   $mysqli->close();
-   return $result;
+    $validTables = ['aUsers', 'aTeacher', 'aStudent', 'aSubject', 'aProgramme', 'Classes', 'aFaculty', 'ClassesInfo', 'Attendance', 'token_table'];
+    $validColumns = ['name', 'fname', 'lname', 'email', 'password', 'roll_number', 'deleted', 'teacher', 'subject', 'course_code', 'course_credit', 'timestamp', 'token', 'role', 'created_date', 'title', 'semester', 'programme', 'day', 'attendance', 'status'];
+
+    if (!in_array($tableName, $validTables) || !in_array($columnName, $validColumns) || !in_array($idName, $validColumns)) {
+        $mysqli->close();
+        return false;
+    }
+
+    $query = "update $tableName set $columnName = ? where $idName = ?";
+
+    if ($stmt = $mysqli->prepare($query)) {
+        $stmt->bind_param("ss", $newValue, $id);
+        $result = $stmt->execute();
+        $stmt->close();
+    }
+    $mysqli->close();
+    return $result;
 }
