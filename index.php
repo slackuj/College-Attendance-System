@@ -20,20 +20,20 @@ if (isset($_SESSION['logged-in'])){
 else if (isset($_POST['login'])){
     $data = login($_POST['email'], $_POST['password']);
     if ($data){
-        $_SESSION['id'] = $data[1];
-        if ($data[2] == -1){
+        $_SESSION['id'] = $data['id'];
+        if ($data['role'] == -1){
             $_SESSION['logged-in'] = -1;
             header('Location:  /frontend/Admin/profile.php');
         }
-        else if ($data[2] == 0) {
+        else if ($data['role'] == 0) {
             $_SESSION['logged-in'] = 0;
             header('Location:  /frontend/student/profile.php');
         }
-        else if($data[2] == 1){
+        else if($data['role'] == 1){
             $_SESSION['logged-in'] = 1;
             header('Location:  /frontend/teacher/profile.php');
         }
-        else if($data[2] == 2 || $data[2] == 3){/* password has been reset by admin and user needs to update the password */
+        else if($data['role'] == 2 || $data['role'] == 3){/* password has been reset by admin and user needs to update the password */
             //$_SESSION['logged-in'] = $data[2];
             header('Location:  /frontend/account/update_password.php?email=' . $_POST['email'] . '&user=' . $data[2]);
         }
